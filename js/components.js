@@ -15,7 +15,7 @@ const LNURLP_URL = DOMAIN_URL + 'lnurlp/api/v1/links';
 var formUser = document.getElementById('create-user-form');
 
 //get data from lnbits api
-const apiRequestGet = async (action, usr) => {
+const apiRequestGet = async (action, usr, paramKey) => {
     let key = '';
     let url = '';
 
@@ -27,6 +27,10 @@ const apiRequestGet = async (action, usr) => {
         case 2:
             key = USR_MNG_KEY;
             url = USR_MNG_URL;
+            break;
+        case 3:
+            key = paramKey;
+            url = LNURLP_URL;
             break;
         default: 
             console.log('Specify an announced kind of user')
@@ -109,8 +113,12 @@ const createBody = (username, walletname, email, password) => {
     return body;
 }
 
+const setQrCode = (idElement, text) => {
+    new QRCode(idElement, text);
+}
+
 //function to generate qrcode of the wallet
-const createQrWallet = async (usrId) => {
+const createQrWallet = async (idElement, usrId) => {
     let data = await apiRequestGet('wallets', 2);
     let url = '';
 
@@ -120,7 +128,17 @@ const createQrWallet = async (usrId) => {
         }
     }
 
-    new QRCode(document.getElementById('qr-code'), url);
+    setQrCode(idElement, url);
+}
+
+
+//function to get lnurl of user
+const getLnurlp = async (idElement, invKey) => {
+    let data = await apiRequestGet('', 3, invKey);
+
+    setQrCode(idElement, data[0].lnurl);
+
+    return data[0].lnurl;
 }
 
 //function to get the last user created
@@ -142,26 +160,50 @@ const getLastUsrData = async () => {
     return json;
 }
 
-const addLnurlp = async (description, min, max, username, admKey) => {
+//function to get data from an specific usr id
+const getDataFromUsrId = async (usrId) => {
+    let data = await apiRequestGet('wallets', 2);
+    let json = '';
+
+    for (var i = 0; i < data.length; i++) {
+        if (data[i].user == usrId) {
+            json = {
+                admin: data[i].admin,
+                adminkey: data[i].adminkey,
+                id: data[i].id,
+                inkey: data[i].inkey,
+                name: data[i].name,
+                user: data[i].user
+            }
+        }
+    }
+
+    return json;
+}
+
+//function that verifies login by usrId
+const loginByUsrId = async (usrId) => {
+    let data = await getDataFromUsrId(usrId);
+    let check = false;
+
+    if (data) {
+        check = true;
+    }
+
+    return check;
+}
+
+//function to create a lnurl for a user
+const addLnurlp = async (description, min, max, admKey) => {
     let response = await apiRequestPost('', 4, {'description': description, 'max': max, 'min': min, 'zaps': 'false', 'comment_chars': 0}, admKey);
 
     return response;
 }
-
-document.addEventListener("DOMContentLoaded", async (e) => {
-    
-});
 
 //final function to create a new user and enable lnurl extension on his wallet
 const createNewUser = async (username, walletname, email, password) => {
     await apiRequestPost('users', 2, createBody(username, walletname, email, password));
     let data = await getLastUsrData();
     await apiRequestPost('extensions?extension=lnurlp&userid=' + data.usr + '&active=true', 3);
-    addLnurlp('tips!', 10, 10000, data.usr, data.admKey);
+    addLnurlp('tips!', 10, 10000, data.admKey);
 }
-
-formUser.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    
-    createNewUser(formUser['user-name'].value, formUser['wallet-name'].value, '', '');
-}); 
