@@ -10,7 +10,7 @@ const ADMIN_ID_FOR_USR_MNG = '031e0e39187846c5b4253b7c71ec8ed6';
 const USR_MNG_URL = DOMAIN_URL + 'usermanager/api/v1/';
 const USR_MNG_KEY = '4dfeea8d9ecf4611ace81e5cf929a6a9';
 
-const LNURLP_URL = 'lnurl/api/v1/links';
+const LNURLP_URL = DOMAIN_URL + 'lnurlp/api/v1/links';
 
 var formUser = document.getElementById('create-user-form');
 
@@ -52,7 +52,7 @@ const apiRequestGet = async (action, usr) => {
 }
 
 //post requests for lnbits api
-const apiRequestPost = async (action, usr, body) => {
+const apiRequestPost = async (action, usr, body, paramKey) => {
     let key = '';
     let url = '';
 
@@ -68,6 +68,10 @@ const apiRequestPost = async (action, usr, body) => {
         case 3:
             key = ADMIN_KEY;
             url = USR_MNG_URL;
+            break;
+        case 4:
+            key = paramKey;
+            url = LNURLP_URL;
             break;
         default: 
             console.log('Specify an announced kind of user')
@@ -138,20 +142,26 @@ const getLastUsrData = async () => {
     return json;
 }
 
-document.addEventListener("DOMContentLoaded", async (e) => {
-    createQrWallet(await getLastUsrData());
+const addLnurlp = async (description, min, max, username, admKey) => {
+    let response = await apiRequestPost('', 4, {'description': description, 'max': max, 'min': min, 'zaps': 'false', 'comment_chars': 0}, admKey);
 
-    console.log(await getLastUsrData());
+    return response;
+}
+
+document.addEventListener("DOMContentLoaded", async (e) => {
+    
 });
 
 //final function to create a new user and enable lnurl extension on his wallet
 const createNewUser = async (username, walletname, email, password) => {
     await apiRequestPost('users', 2, createBody(username, walletname, email, password));
-    apiRequestPost('extensions?extension=lnurlp&userid=' + await getLastUsr() + '&active=true', 3);
+    let data = await getLastUsrData();
+    await apiRequestPost('extensions?extension=lnurlp&userid=' + data.usr + '&active=true', 3);
+    addLnurlp('tips!', 10, 10000, data.usr, data.admKey);
 }
 
 formUser.addEventListener('submit', async (e) => {
     e.preventDefault();
     
-    createNewUser(formUser['user-name'].value, formUser['wallet-name'].value, 'email@email.com', 'passwordxd');
+    createNewUser(formUser['user-name'].value, formUser['wallet-name'].value, '', '');
 }); 
