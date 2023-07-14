@@ -113,12 +113,12 @@ const createBody = (username, walletname, email, password) => {
     return body;
 }
 
-const setQrCode = (idElement, text) => {
-    new QRCode(idElement, text);
+const setQrCode = (idElement, paramText, paramWidth, paramHeight) => {
+    new QRCode(idElement, {text: paramText, width: paramWidth, height: paramHeight});
 }
 
 //function to generate qrcode of the wallet
-const createQrWallet = async (idElement, usrId) => {
+const createQrWallet = async (idElement, usrId, paramWidth, paramHeight) => {
     let data = await apiRequestGet('wallets', 2);
     let url = '';
 
@@ -128,15 +128,15 @@ const createQrWallet = async (idElement, usrId) => {
         }
     }
 
-    setQrCode(idElement, url);
+    setQrCode(idElement, url, paramWidth, paramHeight);
 }
 
 
 //function to get lnurl of user
-const getLnurlp = async (idElement, invKey) => {
+const getLnurlp = async (idElement, invKey, paramWidth, paramHeight) => {
     let data = await apiRequestGet('', 3, invKey);
 
-    setQrCode(idElement, data[0].lnurl);
+    setQrCode(idElement, data[0].lnurl, paramWidth, paramHeight);
 
     return data[0].lnurl;
 }
