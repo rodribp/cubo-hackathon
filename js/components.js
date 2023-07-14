@@ -209,10 +209,3 @@ const createNewUser = async (username, walletname, email, password) => {
 
     return data.usr;
 }
-
-document.addEventListener('DOMContentLoaded', async (e) => {
-    let usr = '4013aa086b87436584b9dfff0db85827';
-    let data = await getDataFromUsrId(usr);
-
-    getLnurlp('qr-code1', data.inkey);
-});
