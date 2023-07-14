@@ -209,9 +209,3 @@ const createNewUser = async (username, walletname, email, password) => {
 
     return data.usr;
 }
-
-document.addEventListener('DOMContentLoaded', async (e) => {
-    let result = await createNewUser('juanito', 'juanitowallet', '', '');
-
-    console.log(result);
-})
