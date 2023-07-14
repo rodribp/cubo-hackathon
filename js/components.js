@@ -206,4 +206,12 @@ const createNewUser = async (username, walletname, email, password) => {
     let data = await getLastUsrData();
     await apiRequestPost('extensions?extension=lnurlp&userid=' + data.usr + '&active=true', 3);
     addLnurlp('tips!', 10, 10000, data.admKey);
+
+    return data.usr;
 }
+
+document.addEventListener('DOMContentLoaded', async (e) => {
+    let result = await createNewUser('juanito', 'juanitowallet', '', '');
+
+    console.log(result);
+})
